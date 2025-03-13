@@ -8,6 +8,8 @@
 import WidgetKit
 import SwiftUI
 import WebKit
+// Import SwiftSoup library - Note: we may need to set up module import properly in the project
+import SwiftSoup
 
 // Content extraction model
 struct WebContent {
@@ -91,16 +93,23 @@ struct Provider: AppIntentTimelineProvider {
                 )
             }
             
-            // Simple parsing to extract content based on querySelector
-            // Note: This is a simplified approach, real implementation would use a proper HTML parser
-            let extractedContent = extractContent(from: htmlString, using: querySelector)
+            // Use SwiftSoup to extract content
+            let extractedContent = try extractContentWithSwiftSoup(from: htmlString, using: querySelector)
             
             return WebContent(
-                content: extractedContent ?? "No content found matching the selector",
-                error: extractedContent == nil ? "No content matching selector" : nil,
+                content: extractedContent,
+                error: nil,
+                lastUpdated: Date()
+            )
+        } catch let error as SwiftSoup.Exception {
+            // SwiftSoup specific errors - using String representation instead of property access
+            return WebContent(
+                content: "",
+                error: "HTML parsing error: \(error)",
                 lastUpdated: Date()
             )
         } catch {
+            // Other errors
             return WebContent(
                 content: "",
                 error: "Error fetching website: \(error.localizedDescription)",
@@ -109,46 +118,39 @@ struct Provider: AppIntentTimelineProvider {
         }
     }
     
-    private func extractContent(from html: String, using querySelector: String) -> String? {
-        // This is a very simple placeholder implementation
-        // In a real app, you would use a proper HTML parser like SwiftSoup
+    // New method that uses SwiftSoup for proper HTML parsing with CSS selectors
+    private func extractContentWithSwiftSoup(from html: String, using querySelector: String) throws -> String {
+        let doc = try SwiftSoup.parse(html)
         
-        // For demonstration, let's do a simple extraction based on ID or class
-        if querySelector.hasPrefix("#") {
-            // ID selector
-            let id = querySelector.dropFirst()
-            if let range = html.range(of: "id=\"\(id)\"") {
-                // Find content after the ID tag (simplified)
-                let startIndex = range.upperBound
-                if let endRange = html.range(of: "</", range: startIndex..<html.endIndex) {
-                    let content = html[startIndex..<endRange.lowerBound]
-                    return String(content).trimmingCharacters(in: .whitespacesAndNewlines)
-                }
-            }
-        } else if querySelector.hasPrefix(".") {
-            // Class selector (simplified)
-            let className = querySelector.dropFirst()
-            if let range = html.range(of: "class=\"[^\"]*\(className)[^\"]*\"") {
-                // Find content after the class tag (simplified)
-                let startIndex = range.upperBound
-                if let endRange = html.range(of: "</", range: startIndex..<html.endIndex) {
-                    let content = html[startIndex..<endRange.lowerBound]
-                    return String(content).trimmingCharacters(in: .whitespacesAndNewlines)
-                }
-            }
-        } else if querySelector == "body" {
-            // Body selector (simplified)
-            if let startRange = html.range(of: "<body"),
-               let contentStart = html.range(of: ">", range: startRange.upperBound..<html.endIndex),
-               let endRange = html.range(of: "</body>") {
-                let content = html[contentStart.upperBound..<endRange.lowerBound]
-                return String(content).trimmingCharacters(in: .whitespacesAndNewlines)
-            }
+        // Select elements with the provided CSS selector
+        let elements = try doc.select(querySelector)
+        
+        if elements.isEmpty() {
+            // No elements found with this selector
+            let bodyText = try doc.body()?.text() ?? ""
+            let previewText = String(bodyText.prefix(100))
+            return "No content found matching '\(querySelector)'. Page preview: \(previewText)..."
         }
         
-        // Return a portion of the HTML if we can't parse it properly
-        let snippet = String(html.prefix(300))
-        return "Could not parse selector. HTML sample: \(snippet)..."
+        // Get the first matching element
+        let element = elements.first()!
+        
+        // Different content handling based on selector type
+        if querySelector.lowercased().contains("img") || element.tagName() == "img" {
+            // For images, get the src attribute
+            return try element.attr("src")
+        } else if element.tagName() == "a" {
+            // For links, show both text and href
+            let text = try element.text()
+            let href = try element.attr("href")
+            return "\(text) (\(href))"
+        } else if element.children().size() > 0 && !querySelector.contains(":text") {
+            // For elements with children, get the HTML content
+            return try element.html()
+        } else {
+            // For text nodes or simple elements, get just the text
+            return try element.text()
+        }
     }
 }
 

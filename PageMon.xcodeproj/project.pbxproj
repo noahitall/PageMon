@@ -10,6 +10,7 @@
 		4F7C12F72D837DF500F20D2B /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4F7C12F62D837DF500F20D2B /* WidgetKit.framework */; };
 		4F7C12F92D837DF500F20D2B /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4F7C12F82D837DF500F20D2B /* SwiftUI.framework */; };
 		4F7C13072D837DF600F20D2B /* PageWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 4F7C12F42D837DF500F20D2B /* PageWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		4F7C13112D838BEB00F20D2B /* SwiftSoup in Frameworks */ = {isa = PBXBuildFile; productRef = 4F7C13102D838BEB00F20D2B /* SwiftSoup */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -83,6 +84,7 @@
 			files = (
 				4F7C12F92D837DF500F20D2B /* SwiftUI.framework in Frameworks */,
 				4F7C12F72D837DF500F20D2B /* WidgetKit.framework in Frameworks */,
+				4F7C13112D838BEB00F20D2B /* SwiftSoup in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -161,6 +163,7 @@
 			);
 			name = PageWidgetExtension;
 			packageProductDependencies = (
+				4F7C13102D838BEB00F20D2B /* SwiftSoup */,
 			);
 			productName = PageWidgetExtension;
 			productReference = 4F7C12F42D837DF500F20D2B /* PageWidgetExtension.appex */;
@@ -193,6 +196,9 @@
 			);
 			mainGroup = 4F7C12D52D837DAF00F20D2B;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				4F7C130F2D838BEB00F20D2B /* XCRemoteSwiftPackageReference "SwiftSoup" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 4F7C12DF2D837DAF00F20D2B /* Products */;
 			projectDirPath = "";
@@ -512,6 +518,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		4F7C130F2D838BEB00F20D2B /* XCRemoteSwiftPackageReference "SwiftSoup" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/scinfu/SwiftSoup.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.8.7;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		4F7C13102D838BEB00F20D2B /* SwiftSoup */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 4F7C130F2D838BEB00F20D2B /* XCRemoteSwiftPackageReference "SwiftSoup" */;
+			productName = SwiftSoup;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 4F7C12D62D837DAF00F20D2B /* Project object */;
 }
