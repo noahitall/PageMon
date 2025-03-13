@@ -1,0 +1,22 @@
+{
+  "name": "page-content-fetcher",
+  "version": "1.0.0",
+  "description": "Extract content from websites using CSS selectors with or without JavaScript rendering",
+  "main": "index.js",
+  "bin": {
+    "fetch-content": "./index.js"
+  },
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "puppeteer": "^22.8.2",
+    "minimist": "^1.2.8",
+    "cheerio": "^1.0.0-rc.12"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "author": "",
+  "license": "MIT"
+} 
