@@ -248,7 +248,7 @@ struct PageWidgetEntryView : View {
     
     private let timeFormatter: DateFormatter = {
         let formatter = DateFormatter()
-        formatter.dateStyle = .none
+        formatter.dateStyle = .short
         formatter.timeStyle = .short
         return formatter
     }()
