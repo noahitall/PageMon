@@ -6,14 +6,65 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		4F7C12F72D837DF500F20D2B /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4F7C12F62D837DF500F20D2B /* WidgetKit.framework */; };
+		4F7C12F92D837DF500F20D2B /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4F7C12F82D837DF500F20D2B /* SwiftUI.framework */; };
+		4F7C13072D837DF600F20D2B /* PageWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 4F7C12F42D837DF500F20D2B /* PageWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		4F7C13052D837DF600F20D2B /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 4F7C12D62D837DAF00F20D2B /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 4F7C12F32D837DF500F20D2B;
+			remoteInfo = PageWidgetExtension;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		4F7C130C2D837DF600F20D2B /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				4F7C13072D837DF600F20D2B /* PageWidgetExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
 		4F7C12DE2D837DAF00F20D2B /* PageMon.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PageMon.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		4F7C12F42D837DF500F20D2B /* PageWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = PageWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		4F7C12F62D837DF500F20D2B /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
+		4F7C12F82D837DF500F20D2B /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		4F7C13082D837DF600F20D2B /* Exceptions for "PageWidget" folder in "PageWidgetExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 4F7C12F32D837DF500F20D2B /* PageWidgetExtension */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		4F7C12E02D837DAF00F20D2B /* PageMon */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = PageMon;
+			sourceTree = "<group>";
+		};
+		4F7C12FA2D837DF500F20D2B /* PageWidget */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				4F7C13082D837DF600F20D2B /* Exceptions for "PageWidget" folder in "PageWidgetExtension" target */,
+			);
+			path = PageWidget;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -26,6 +77,15 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		4F7C12F12D837DF500F20D2B /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				4F7C12F92D837DF500F20D2B /* SwiftUI.framework in Frameworks */,
+				4F7C12F72D837DF500F20D2B /* WidgetKit.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -33,6 +93,8 @@
 			isa = PBXGroup;
 			children = (
 				4F7C12E02D837DAF00F20D2B /* PageMon */,
+				4F7C12FA2D837DF500F20D2B /* PageWidget */,
+				4F7C12F52D837DF500F20D2B /* Frameworks */,
 				4F7C12DF2D837DAF00F20D2B /* Products */,
 			);
 			sourceTree = "<group>";
@@ -41,8 +103,18 @@
 			isa = PBXGroup;
 			children = (
 				4F7C12DE2D837DAF00F20D2B /* PageMon.app */,
+				4F7C12F42D837DF500F20D2B /* PageWidgetExtension.appex */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		4F7C12F52D837DF500F20D2B /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				4F7C12F62D837DF500F20D2B /* WidgetKit.framework */,
+				4F7C12F82D837DF500F20D2B /* SwiftUI.framework */,
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -55,10 +127,12 @@
 				4F7C12DA2D837DAF00F20D2B /* Sources */,
 				4F7C12DB2D837DAF00F20D2B /* Frameworks */,
 				4F7C12DC2D837DAF00F20D2B /* Resources */,
+				4F7C130C2D837DF600F20D2B /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				4F7C13062D837DF600F20D2B /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				4F7C12E02D837DAF00F20D2B /* PageMon */,
@@ -69,6 +143,28 @@
 			productName = PageMon;
 			productReference = 4F7C12DE2D837DAF00F20D2B /* PageMon.app */;
 			productType = "com.apple.product-type.application";
+		};
+		4F7C12F32D837DF500F20D2B /* PageWidgetExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 4F7C13092D837DF600F20D2B /* Build configuration list for PBXNativeTarget "PageWidgetExtension" */;
+			buildPhases = (
+				4F7C12F02D837DF500F20D2B /* Sources */,
+				4F7C12F12D837DF500F20D2B /* Frameworks */,
+				4F7C12F22D837DF500F20D2B /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				4F7C12FA2D837DF500F20D2B /* PageWidget */,
+			);
+			name = PageWidgetExtension;
+			packageProductDependencies = (
+			);
+			productName = PageWidgetExtension;
+			productReference = 4F7C12F42D837DF500F20D2B /* PageWidgetExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
 		};
 /* End PBXNativeTarget section */
 
@@ -81,6 +177,9 @@
 				LastUpgradeCheck = 1620;
 				TargetAttributes = {
 					4F7C12DD2D837DAF00F20D2B = {
+						CreatedOnToolsVersion = 16.2;
+					};
+					4F7C12F32D837DF500F20D2B = {
 						CreatedOnToolsVersion = 16.2;
 					};
 				};
@@ -100,12 +199,20 @@
 			projectRoot = "";
 			targets = (
 				4F7C12DD2D837DAF00F20D2B /* PageMon */,
+				4F7C12F32D837DF500F20D2B /* PageWidgetExtension */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
 		4F7C12DC2D837DAF00F20D2B /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		4F7C12F22D837DF500F20D2B /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -122,7 +229,22 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		4F7C12F02D837DF500F20D2B /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		4F7C13062D837DF600F20D2B /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 4F7C12F32D837DF500F20D2B /* PageWidgetExtension */;
+			targetProxy = 4F7C13052D837DF600F20D2B /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		4F7C12EB2D837DB000F20D2B /* Debug */ = {
@@ -249,6 +371,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = PageMon/PageMon.entitlements;
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
@@ -276,6 +399,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = PageMon/PageMon.entitlements;
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
@@ -292,6 +416,66 @@
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = me.noze.PageMon;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		4F7C130A2D837DF600F20D2B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_ENTITLEMENTS = PageWidget/PageWidget.entitlements;
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = NAHTLX333M;
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = PageWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = PageWidget;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@executable_path/../../../../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = me.noze.PageMon.PageWidget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		4F7C130B2D837DF600F20D2B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_ENTITLEMENTS = PageWidget/PageWidget.entitlements;
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = NAHTLX333M;
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = PageWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = PageWidget;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@executable_path/../../../../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = me.noze.PageMon.PageWidget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 			};
@@ -314,6 +498,15 @@
 			buildConfigurations = (
 				4F7C12EE2D837DB000F20D2B /* Debug */,
 				4F7C12EF2D837DB000F20D2B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		4F7C13092D837DF600F20D2B /* Build configuration list for PBXNativeTarget "PageWidgetExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				4F7C130A2D837DF600F20D2B /* Debug */,
+				4F7C130B2D837DF600F20D2B /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
