@@ -7,5 +7,16 @@
 		<key>NSExtensionPointIdentifier</key>
 		<string>com.apple.widgetkit-extension</string>
 	</dict>
+	<!-- Allow outgoing network connections for web content fetching -->
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsArbitraryLoads</key>
+		<true/>
+	</dict>
+	<!-- Allow widget to access Node.js path -->
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>node</string>
+	</array>
 </dict>
 </plist>

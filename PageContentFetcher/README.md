@@ -1,100 +1,153 @@
-# Page Content Fetcher
+# PageMon Content Fetcher
 
-A Node.js tool for fetching content from websites using CSS selectors, with optional JavaScript rendering support.
-
-## Overview
-
-This tool provides a reliable way to extract content from websites, even those that require JavaScript to render their content. It uses:
-
-- **Node.js** for the core functionality
-- **Puppeteer** (headless Chrome) for JavaScript rendering
-- **Cheerio** for non-JavaScript HTML parsing
+This is the content fetching module for the PageMon widget. It allows the widget to extract content from websites using CSS selectors, with optional JavaScript rendering support for dynamic websites.
 
 ## Installation
 
-1. Ensure Node.js is installed on your system (version 14 or higher)
-2. Install the dependencies:
+1. Ensure you have Node.js installed on your system. You can download it from [nodejs.org](https://nodejs.org/).
 
-```bash
-cd PageContentFetcher
-npm install
-```
+2. Install the required dependencies:
+   ```bash
+   cd PageContentFetcher
+   npm install
+   ```
 
-3. Make the script executable:
+3. Make the scripts executable:
+   ```bash
+   chmod +x index.js
+   chmod +x test.js
+   chmod +x ensure-node.sh
+   chmod +x setup-and-test.sh
+   ```
 
-```bash
-chmod +x index.js
-```
+4. Run the setup and test script to verify everything is working:
+   ```bash
+   ./setup-and-test.sh
+   ```
 
 ## Usage
 
-### Command Line
+### Running the Content Fetcher Directly
 
-The simplest way to use this tool is directly with Node.js:
-
-```bash
-node index.js --url="https://example.com" --selector=".main-content" [--useJavaScript]
-```
-
-Or if you made the script executable:
+You can run the content fetcher directly from the command line:
 
 ```bash
-./index.js --url="https://example.com" --selector=".main-content" [--useJavaScript]
+./index.js --url="https://example.com" --selector="#content" [--useJavaScript] [--debug]
 ```
 
 Parameters:
-- `--url`: The URL of the website to fetch (required)
-- `--selector`: The CSS selector to extract content (required)
-- `--useJavaScript`: Add this flag to enable JavaScript rendering (optional)
+- `--url`: The URL of the website to fetch content from (required)
+- `--selector`: The CSS selector to extract content from (required)
+- `--useJavaScript`: Enable JavaScript rendering for dynamic websites (optional)
+- `--debug`: Show detailed debug output (optional)
 
-### Global Installation
+### Running Tests
 
-You can also install this tool globally:
+To test the content fetcher with more detailed output:
 
 ```bash
-npm install -g .
-fetch-content --url="https://example.com" --selector=".main-content"
+./test.js --url="https://example.com" --selector="h1" [--useJavaScript] [--verbose]
 ```
 
-### Output
+The test script provides more detailed information about the execution and results.
 
-The tool outputs JSON that can be parsed by other applications:
+## Integration with the Widget
 
-```json
-{
-  "content": "Extracted content will appear here",
-  "error": null,
-  "date": "2023-05-20T14:30:45.123Z"
-}
-```
+The PageMon widget uses this content fetcher to extract website content. The integration works as follows:
 
-## Integration with Swift Widget
-
-This tool is designed to be called from the PageMon widget. The widget executes the Node.js script and parses the JSON response.
-
-### Path Configuration
-
-Make sure to update the script path in `PageWidget.swift` to match your installation location:
-
-```swift
-let scriptPath = "/path/to/PageContentFetcher/index.js"
-```
-
-## How It Works
-
-1. When JavaScript is disabled (default):
-   - Uses Cheerio to parse the HTML directly
-   - Faster and uses less resources
-
-2. When JavaScript is enabled:
-   - Uses Puppeteer (headless Chrome) to render the page
-   - Waits for the page to be fully loaded
-   - Extracts content after JavaScript execution
-   - More resource-intensive but works with modern web apps
+1. The widget calls `ensure-node.sh` to verify the Node.js environment is properly set up
+2. If the check passes, the widget then runs `index.js` with the appropriate parameters
+3. The output (in JSON format) is parsed by the widget and displayed
 
 ## Troubleshooting
 
-- **Permission Denied**: Make sure the script is executable: `chmod +x index.js`
-- **Missing Dependencies**: Run `npm install` to ensure all dependencies are installed
-- **Timeout Issues**: For large pages, you may need to increase the timeout in the script
-- **Puppeteer Issues**: If you encounter problems with Puppeteer, you might need to install additional dependencies depending on your OS 
+If you encounter issues with the content fetcher or widget:
+
+### "Invalid response format" Error
+
+This error occurs when the widget can't parse the JSON output from the content fetcher.
+
+1. Check the logs in the widget's logfile (path is shown in the error message)
+2. Run the test script with the same URL and selector to verify output:
+   ```bash
+   ./test.js --url="your-url" --selector="your-selector" --verbose
+   ```
+3. Ensure the output is valid JSON by checking the debug output
+
+### "Node.js not properly configured" Error
+
+This error occurs when the widget can't find or execute Node.js correctly.
+
+1. Verify Node.js is installed and in your PATH:
+   ```bash
+   node --version
+   ```
+2. Run the environment check script manually:
+   ```bash
+   ./ensure-node.sh
+   ```
+3. Make sure all scripts are executable:
+   ```bash
+   chmod +x *.js *.sh
+   ```
+
+### JavaScript Rendering Issues
+
+If you're having trouble with JavaScript rendering:
+
+1. Verify Puppeteer is installed correctly:
+   ```bash
+   npm list puppeteer
+   ```
+2. Try running with the debug flag to see detailed output:
+   ```bash
+   ./index.js --url="your-url" --selector="your-selector" --useJavaScript --debug
+   ```
+3. Increase the wait time if the page needs more time to load (edit index.js and increase the timeout value)
+
+### Performance Issues
+
+If the widget is slow to update:
+
+1. Avoid using JavaScript rendering unless necessary (it's much slower)
+2. Use more specific CSS selectors to target content efficiently
+3. Consider using smaller widgets which require less content
+
+## Logs
+
+Logs from the content fetcher can be found in:
+- `/tmp/PageMonLogs` for environment check logs
+- The path shown in error messages for widget operation logs
+
+These logs can help diagnose issues with content fetching, JavaScript rendering, and more.
+
+## Advanced Usage
+
+### Using More Complex Selectors
+
+The content fetcher supports full CSS selectors with SwiftSoup:
+
+```
+# Basic selectors
+h1                  # Select all h1 elements
+.class-name         # Select elements with class="class-name"
+#id-name            # Select element with id="id-name"
+
+# Combinators
+div p               # Select all p elements inside div elements
+div > p             # Select all p elements with div as direct parent
+div + p             # Select p element directly after div
+div ~ p             # Select all p elements after div
+
+# Attribute selectors
+[attr]              # Select elements with attr attribute
+[attr=value]        # Select elements with attr="value"
+[attr^=value]       # Select elements with attr starting with "value"
+[attr$=value]       # Select elements with attr ending with "value"
+[attr*=value]       # Select elements with attr containing "value"
+
+# Pseudo-classes
+:first-child        # Select elements that are first child of parent
+:last-child         # Select elements that are last child of parent
+:nth-child(n)       # Select elements that are nth child of parent
+``` 
