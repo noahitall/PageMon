@@ -30,6 +30,10 @@ PageMon supports two methods for extracting web content:
 - **Multiple Result Support**: Can return either the first matching element or all matches
 - **API Key Authentication**: Optional security for server requests
 - **Consistent Results**: Ensures all widgets use the same extraction logic
+- **JavaScript Wait Options**: Fine-grained control over page loading and rendering:
+  - Load state waiting (load, domcontentloaded, networkidle)
+  - Wait for specific elements to appear before extracting content
+  - Additional waiting time for complete rendering
 
 ## Limitations
 
@@ -68,6 +72,19 @@ To use the PageQueryServer, configure your widget with:
 6. Choose whether to fetch all matches (`fetchAllMatches` setting)
 7. Set `useJavaScript` based on whether the content requires JavaScript rendering
 
+### JavaScript Wait Options
+
+For complex JavaScript applications that require more time to fully render:
+
+1. Enable JavaScript rendering (`useJavaScript` = true)
+2. Enable wait options (`enableWaitOptions` = true)
+3. Configure wait parameters:
+   - Load State: Choose between "load", "domcontentloaded", or "networkidle"
+   - Wait for Selector: Enter a CSS selector for an element that appears when content is ready
+   - Additional Wait Time: Specify extra seconds to wait after page load (0-10)
+
+These options allow fine-tuning for websites that use complex JavaScript frameworks or have delayed content loading.
+
 ## Example Selectors
 
 Here are some examples of CSS selectors that you can use:
@@ -90,7 +107,12 @@ The PageQueryServer accepts POST requests with the following JSON structure:
   "selector": "h1",
   "timeout": 45,
   "first_only": true,
-  "render_js": false
+  "render_js": false,
+  "wait_for": {
+    "load_state": "load",
+    "wait_for_selector": ".some-indicator-element",
+    "wait_time": 2
+  }
 }
 ```
 
@@ -117,6 +139,12 @@ If you're not getting the expected content:
 2. Verify that the content is present in the HTML source (View Source in browser)
 3. For dynamic content that requires JavaScript, enable both `useServer` and `useJavaScript`
 4. Check the server logs if using PageQueryServer
+
+For JavaScript-heavy sites:
+1. Enable wait options to give the page more time to render
+2. For single-page applications, use "networkidle" as load state
+3. Find a reliable indicator element that appears after content loads
+4. Increase additional wait time for complex animations or delayed content
 
 For server connection issues:
 1. Verify the server is running at the configured URL

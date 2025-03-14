@@ -39,13 +39,26 @@ struct Provider: AppIntentTimelineProvider {
         var entries: [SimpleEntry] = []
         let currentDate = Date()
         
-        // Extract content from the website
-        let webContent = await fetchWebContent(
-            configuration: configuration,
-            url: configuration.websiteURL,
-            querySelector: configuration.querySelector,
-            useJavaScript: configuration.useJavaScript
-        )
+        // Validate configuration before fetching content
+        let configValidation = validateConfiguration(configuration)
+        let webContent: WebContent
+        
+        if let validationError = configValidation {
+            // Configuration is invalid, return the error
+            webContent = WebContent(
+                content: "",
+                error: validationError,
+                lastUpdated: currentDate
+            )
+        } else {
+            // Configuration is valid, fetch content
+            webContent = await fetchWebContent(
+                configuration: configuration,
+                url: configuration.websiteURL,
+                querySelector: configuration.querySelector,
+                useJavaScript: configuration.useJavaScript
+            )
+        }
         
         // Create current entry
         let entry = SimpleEntry(
@@ -59,6 +72,112 @@ struct Provider: AppIntentTimelineProvider {
         let nextUpdateDate = Calendar.current.date(byAdding: .hour, value: 1, to: currentDate)!
         
         return Timeline(entries: entries, policy: .after(nextUpdateDate))
+    }
+    
+    // Validate the configuration settings
+    private func validateConfiguration(_ configuration: ConfigurationAppIntent) -> String? {
+        // Validate website URL
+        if configuration.websiteURL.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            return "Please enter a website URL"
+        }
+        
+        if !configuration.websiteURL.hasPrefix("http://") && !configuration.websiteURL.hasPrefix("https://") {
+            return "Website URL must start with http:// or https://"
+        }
+        
+        guard URL(string: configuration.websiteURL) != nil else {
+            return "Invalid website URL format"
+        }
+        
+        // Validate query selector
+        if configuration.querySelector.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            return "Please enter a CSS selector"
+        }
+        
+        // Validate server settings
+        if configuration.useServer {
+            // Check server URL
+            if configuration.serverURL.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                return "Server URL cannot be empty when using server mode"
+            }
+            
+            if !configuration.serverURL.hasPrefix("http://") && !configuration.serverURL.hasPrefix("https://") {
+                return "Server URL must start with http:// or https://"
+            }
+            
+            guard URL(string: configuration.serverURL) != nil else {
+                return "Invalid server URL format"
+            }
+            
+            // Validate wait options if enabled
+            if configuration.enableWaitOptions {
+                // Wait options require JavaScript rendering
+                if !configuration.useJavaScript {
+                    return "Wait options require JavaScript rendering to be enabled"
+                }
+                
+                // Validate load state
+                if !configuration.loadState.isEmpty {
+                    let validLoadStates = ["domcontentloaded", "load", "networkidle"]
+                    if !validLoadStates.contains(configuration.loadState) {
+                        return "Load state must be 'domcontentloaded', 'load', or 'networkidle'"
+                    }
+                }
+                
+                // Validate wait for selector - only check if non-empty
+                if !configuration.waitForSelector.isEmpty {
+                    // Ensure it's not just whitespace
+                    if configuration.waitForSelector.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                        return "Wait for selector cannot be only whitespace"
+                    }
+                    
+                    // Check for common CSS selector errors - basic validation
+                    let selector = configuration.waitForSelector.trimmingCharacters(in: .whitespacesAndNewlines)
+                    if let firstChar = selector.first, firstChar.isNumber {
+                        return "Wait for selector cannot start with a number (use a valid CSS selector)"
+                    }
+                    
+                    // Ensure it's not just a number
+                    if Double(selector) != nil || Int(selector) != nil {
+                        return "Wait for selector must be a CSS selector string, not a number"
+                    }
+                }
+                
+                // Validate wait time
+                if configuration.additionalWaitTime < 0 {
+                    return "Additional wait time cannot be negative"
+                }
+                
+                if configuration.additionalWaitTime > 10 {
+                    return "Additional wait time cannot exceed 10 seconds"
+                }
+                
+                // Ensure at least one wait option is specified
+                if configuration.loadState.isEmpty && 
+                   configuration.waitForSelector.isEmpty && 
+                   configuration.additionalWaitTime <= 0 {
+                    return "At least one wait option must be specified when wait options are enabled"
+                }
+            }
+        } else {
+            // If not using server but JavaScript is enabled
+            if configuration.useJavaScript {
+                return "JavaScript rendering requires server mode to be enabled. Please enable 'Use Server' or disable 'Use JavaScript'."
+            }
+            
+            // If fetchAllMatches is enabled but not using server
+            if configuration.fetchAllMatches {
+                return "'Fetch All Matches' requires server mode to be enabled. Please enable 'Use Server'."
+            }
+            
+            // If wait options are enabled but not using server
+            if configuration.enableWaitOptions {
+                return "Wait options require server mode to be enabled. Please enable 'Use Server'."
+            }
+        }
+        
+        // All checks passed
+        return nil
     }
     
     private func fetchWebContent(configuration: ConfigurationAppIntent, url: String, querySelector: String, useJavaScript: Bool) async -> WebContent {
@@ -86,6 +205,24 @@ struct Provider: AppIntentTimelineProvider {
         log("URL: \(url)")
         log("Selector: \(querySelector)")
         log("JavaScript Requested: \(useJavaScript)")
+        log("Server Mode: \(configuration.useServer)")
+        if configuration.useServer {
+            log("Server URL: \(configuration.serverURL)")
+            log("Fetch All Matches: \(configuration.fetchAllMatches)")
+            
+            if configuration.useJavaScript && configuration.enableWaitOptions {
+                log("JavaScript Wait Options Enabled: true")
+                if !configuration.loadState.isEmpty {
+                    log("Load State: \(configuration.loadState)")
+                }
+                if !configuration.waitForSelector.isEmpty {
+                    log("Wait For Selector: \(configuration.waitForSelector)")
+                }
+                if configuration.additionalWaitTime > 0 {
+                    log("Additional Wait Time: \(configuration.additionalWaitTime) seconds")
+                }
+            }
+        }
         
         // Check that URL is valid
         guard let urlObj = URL(string: url) else {
@@ -126,6 +263,52 @@ struct Provider: AppIntentTimelineProvider {
                 // Add JavaScript rendering flag if needed
                 if useJavaScript {
                     requestDict["render_js"] = true
+                    
+                    // Add wait options if enabled
+                    if configuration.enableWaitOptions {
+                        log("Adding wait options for JavaScript rendering")
+                        
+                        var waitForDict: [String: Any] = [:]
+                        
+                        // Add load state - must be one of these specific values
+                        if !configuration.loadState.isEmpty {
+                            let validLoadStates = ["domcontentloaded", "load", "networkidle"]
+                            if validLoadStates.contains(configuration.loadState) {
+                                waitForDict["load_state"] = configuration.loadState
+                                log("Load state: \(configuration.loadState)")
+                            } else {
+                                log("Warning: Invalid load state '\(configuration.loadState)'. Using default.")
+                            }
+                        }
+                        
+                        // Add wait for selector (must be a valid CSS selector string)
+                        if !configuration.waitForSelector.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                            let selector = configuration.waitForSelector.trimmingCharacters(in: .whitespacesAndNewlines)
+                            
+                            // Basic validation to ensure it's not a number
+                            if Double(selector) != nil || Int(selector) != nil {
+                                log("Warning: Invalid wait_for_selector (appears to be a number). Using default.")
+                            } else {
+                                waitForDict["wait_for_selector"] = selector
+                                log("Wait for selector: \(selector)")
+                            }
+                        }
+                        
+                        // Add additional wait time (limited to reasonable range)
+                        let waitTime = max(0, min(configuration.additionalWaitTime, 15))  // Allow up to 15 seconds
+                        if waitTime > 0 {
+                            waitForDict["wait_time"] = waitTime
+                            log("Additional wait time: \(waitTime) seconds")
+                        }
+                        
+                        // Only add wait_for if we have at least one option
+                        if !waitForDict.isEmpty {
+                            requestDict["wait_for"] = waitForDict
+                            log("Adding wait_for options to request: \(waitForDict)")
+                        } else {
+                            log("No valid wait options provided, skipping wait_for parameter")
+                        }
+                    }
                 }
                 
                 let requestData = try JSONSerialization.data(withJSONObject: requestDict)
@@ -411,18 +594,46 @@ struct PageWidgetEntryView : View {
         return formatter
     }
     
-    // Format error message to be more concise
+    // Format error message to be more concise and helpful
     var formattedError: String {
         guard let error = entry.webContent.error else { return "" }
         
-        // For timeout errors, show a shorter message
-        if error.contains("Timed out") {
-            return "Timed out loading JavaScript content"
+        // For configuration errors
+        if error.contains("Please enter") || 
+           error.contains("must start with") ||
+           error.contains("requires server mode") ||
+           error.contains("Invalid") {
+            return "Configuration error: \(error)"
         }
         
-        // For no content errors, show a shorter message
-        if error.contains("No content found") {
-            return "No content found with selector"
+        // For timeout errors
+        if error.contains("Timed out") {
+            return "Timed out loading content"
+        }
+        
+        // For connection errors
+        if error.contains("Could not connect") || error.contains("connection") {
+            return "Connection error: Unable to reach server"
+        }
+        
+        // For authentication errors
+        if error.contains("Authentication") || error.contains("API key") {
+            return "Authentication error: \(error)"
+        }
+        
+        // For selector errors
+        if error.contains("No content found") || error.contains("selector") {
+            return "Selector error: No content found"
+        }
+        
+        // For server errors
+        if error.contains("Server error") || (error.contains("HTTP error") && error.contains("5")) {
+            return "Server error: The content server is experiencing issues"
+        }
+        
+        // For JavaScript errors
+        if error.contains("JavaScript") {
+            return "JavaScript error: \(error)"
         }
         
         // For other errors, limit to reasonable length
@@ -432,6 +643,49 @@ struct PageWidgetEntryView : View {
         }
         
         return error
+    }
+    
+    // Get user-friendly guidance based on error
+    var errorGuidance: String {
+        guard let error = entry.webContent.error else { return "" }
+        
+        if error.contains("Please enter a website URL") {
+            return "Add a URL in widget settings"
+        }
+        
+        if error.contains("Please enter a CSS selector") {
+            return "Add a CSS selector in settings"
+        }
+        
+        if error.contains("must start with http://") {
+            return "URL must include http:// or https://"
+        }
+        
+        if error.contains("JavaScript rendering requires server mode") {
+            return "Enable 'Use Server' for JS support"
+        }
+        
+        if error.contains("'Fetch All Matches' requires server mode") {
+            return "Enable 'Use Server' to fetch all matches"
+        }
+        
+        if error.contains("No content found") {
+            return "Try a different CSS selector"
+        }
+        
+        if error.contains("Server URL") {
+            return "Check server URL in settings"
+        }
+        
+        if error.contains("Could not connect") || error.contains("connection") {
+            return "Verify server is running"
+        }
+        
+        if error.contains("Authentication") || error.contains("API key") {
+            return "Check API key in settings"
+        }
+        
+        return "Check widget settings"
     }
     
     var body: some View {
@@ -452,10 +706,10 @@ struct PageWidgetEntryView : View {
             if let _ = entry.webContent.error {
                 VStack(alignment: .leading, spacing: 4) {
                     HStack {
-                        Image(systemName: "exclamationmark.triangle")
+                        Image(systemName: errorIcon)
                             .font(.caption)
                             .foregroundColor(.orange)
-                        Text("Error")
+                        Text(errorType)
                             .font(.caption)
                             .foregroundColor(.orange)
                             .fontWeight(.semibold)
@@ -465,11 +719,20 @@ struct PageWidgetEntryView : View {
                         .font(.caption2)
                         .foregroundColor(.red)
                         .lineLimit(family == .systemSmall ? 2 : 3)
+                    
+                    // Show guidance for errors
+                    if !errorGuidance.isEmpty {
+                        Text(errorGuidance)
+                            .font(.caption2)
+                            .foregroundColor(.secondary)
+                            .lineLimit(1)
+                            .padding(.top, 2)
+                    }
                 }
             } else {
                 // Display content based on whether we're showing multiple results
                 if entry.configuration.useServer && entry.configuration.fetchAllMatches {
-                    displayMultipleResults
+                    multipleResultsView
                 } else {
                     Text(entry.webContent.content)
                         .font(family == .systemSmall ? .caption : .body)
@@ -504,30 +767,125 @@ struct PageWidgetEntryView : View {
                         .background(Color.blue.opacity(0.2))
                         .cornerRadius(3)
                 }
+                
+                // Wait options indicator
+                if entry.configuration.enableWaitOptions && entry.configuration.useJavaScript {
+                    Text("Wait")
+                        .font(.caption2)
+                        .padding(2)
+                        .background(Color.purple.opacity(0.2))
+                        .cornerRadius(3)
+                }
             }
         }
         .padding(10)
     }
     
-    // Helper view for displaying multiple results with separators
-    var displayMultipleResults: some View {
-        let results = entry.webContent.content.components(separatedBy: "\n")
+    // Error icon based on error type
+    var errorIcon: String {
+        guard let error = entry.webContent.error else { return "exclamationmark.triangle" }
         
-        return ScrollView {
-            VStack(alignment: .leading, spacing: 8) {
-                ForEach(0..<results.count, id: \.self) { index in
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(results[index])
-                            .font(family == .systemSmall ? .caption : .body)
-                        
-                        if index < results.count - 1 {
-                            Divider()
-                        }
+        if error.contains("Please enter") || error.contains("must start with") || error.contains("Invalid") {
+            return "gear.badge.exclamationmark"
+        }
+        
+        if error.contains("No content found") || error.contains("selector") {
+            return "magnifyingglass"
+        }
+        
+        if error.contains("JavaScript") {
+            return "arrow.clockwise.icloud"
+        }
+        
+        if error.contains("Could not connect") || error.contains("connection") || error.contains("Server") {
+            return "wifi.exclamationmark"
+        }
+        
+        if error.contains("Authentication") || error.contains("API key") {
+            return "lock"
+        }
+        
+        return "exclamationmark.triangle"
+    }
+    
+    // Error type based on error message
+    var errorType: String {
+        guard let error = entry.webContent.error else { return "Error" }
+        
+        if error.contains("Please enter") || error.contains("must start with") || 
+           error.contains("requires server mode") || error.contains("Invalid") {
+            return "Setup Error"
+        }
+        
+        if error.contains("No content found") || error.contains("selector") {
+            return "Content Error"
+        }
+        
+        if error.contains("JavaScript") {
+            return "JS Error"
+        }
+        
+        if error.contains("Could not connect") || error.contains("connection") {
+            return "Connection Error"
+        }
+        
+        if error.contains("Server") {
+            return "Server Error"
+        }
+        
+        if error.contains("Authentication") || error.contains("API key") {
+            return "Auth Error"
+        }
+        
+        return "Error"
+    }
+    
+    // Helper view for displaying multiple results with separators
+    var multipleResultsView: some View {
+        let results = entry.webContent.content.components(separatedBy: "\n")
+            .filter { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
+        
+        return VStack(alignment: .leading, spacing: 0) {
+            if results.isEmpty {
+                Text("No results found")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            } else {
+                // For small widgets, just show the count and first item
+                if family == .systemSmall {
+                    Text("\(results.count) items found")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                        .padding(.bottom, 2)
+                    
+                    if let first = results.first {
+                        Text(first)
+                            .font(.caption)
+                            .lineLimit(2)
                     }
+                } else {
+                    // For medium and large widgets, show a scrollable list
+                    ScrollView {
+                        LazyVStack(alignment: .leading, spacing: 4) {
+                            ForEach(results.indices, id: \.self) { index in
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text(results[index])
+                                        .font(family == .systemMedium ? .caption : .body)
+                                        .lineLimit(family == .systemMedium ? 2 : 4)
+                                    
+                                    if index < results.count - 1 {
+                                        Divider()
+                                            .padding(.vertical, 2)
+                                    }
+                                }
+                            }
+                        }
+                        .padding(.vertical, 2)
+                    }
+                    .frame(maxHeight: getMaxHeight())
                 }
             }
         }
-        .frame(maxHeight: getMaxHeight())
     }
     
     // Helper to determine max height for scrollable content
@@ -610,6 +968,83 @@ struct PageWidget: Widget {
         configuration: ConfigurationAppIntent(),
         webContent: WebContent(
             content: "This is sample content for the large widget. It can display much more text and information than the smaller widgets. This is ideal for content that needs more space to be properly displayed, such as detailed information or longer text snippets from websites.",
+            error: nil,
+            lastUpdated: Date()
+        )
+    )
+}
+
+// Preview with configuration error
+#Preview("Configuration Error", as: .systemSmall) {
+    PageWidget()
+} timeline: {
+    let errorConfig = ConfigurationAppIntent()
+    SimpleEntry(
+        date: Date(),
+        configuration: errorConfig,
+        webContent: WebContent(
+            content: "",
+            error: "JavaScript rendering requires server mode to be enabled. Please enable 'Use Server' or disable 'Use JavaScript'.",
+            lastUpdated: Date()
+        )
+    )
+}
+
+// Preview with server error
+#Preview("Server Error", as: .systemMedium) {
+    PageWidget()
+} timeline: {
+    let serverConfig: ConfigurationAppIntent = {
+        let config = ConfigurationAppIntent()
+        config.useServer = true
+        config.serverURL = "http://127.0.0.1:5000"
+        return config
+    }()
+    
+    SimpleEntry(
+        date: Date(),
+        configuration: serverConfig,
+        webContent: WebContent(
+            content: "",
+            error: "Could not connect to server: Connection refused",
+            lastUpdated: Date()
+        )
+    )
+}
+
+// Preview with selector error
+#Preview("Selector Error", as: .systemMedium) {
+    PageWidget()
+} timeline: {
+    let selectorConfig = ConfigurationAppIntent()
+    
+    SimpleEntry(
+        date: Date(),
+        configuration: selectorConfig,
+        webContent: WebContent(
+            content: "",
+            error: "No content found matching selector: .nonexistent-element",
+            lastUpdated: Date()
+        )
+    )
+}
+
+// Preview with multiple results
+#Preview("Multiple Results", as: .systemLarge) {
+    PageWidget()
+} timeline: {
+    let multiConfig: ConfigurationAppIntent = {
+        let config = ConfigurationAppIntent()
+        config.useServer = true
+        config.fetchAllMatches = true
+        return config
+    }()
+    
+    SimpleEntry(
+        date: Date(),
+        configuration: multiConfig,
+        webContent: WebContent(
+            content: "First Result\nSecond Result\nThird Result\nFourth Result\nFifth Result",
             error: nil,
             lastUpdated: Date()
         )

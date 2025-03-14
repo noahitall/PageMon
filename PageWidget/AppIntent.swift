@@ -35,4 +35,17 @@ struct ConfigurationAppIntent: WidgetConfigurationIntent {
     
     @Parameter(title: "Fetch All Matches", description: "Fetch all matching elements instead of just the first one", default: false)
     var fetchAllMatches: Bool
+    
+    // JavaScript wait options
+    @Parameter(title: "Enable Wait Options", description: "Configure wait options for JavaScript rendering", default: false)
+    var enableWaitOptions: Bool
+    
+    @Parameter(title: "Load State", description: "Page load state to wait for (load, domcontentloaded, networkidle)", default: "load")
+    var loadState: String
+    
+    @Parameter(title: "Wait for Selector", description: "Wait for a specific element to appear before extracting content", default: "")
+    var waitForSelector: String
+    
+    @Parameter(title: "Additional Wait Time", description: "Extra time to wait in seconds after page load (0-10)", default: 0)
+    var additionalWaitTime: Int
 }
