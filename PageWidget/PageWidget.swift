@@ -586,10 +586,11 @@ struct SimpleEntry: TimelineEntry {
 struct PageWidgetEntryView : View {
     var entry: Provider.Entry
     @Environment(\.widgetFamily) var family
+    @Environment(\.colorScheme) var colorScheme
     
     var timeFormatter: DateFormatter {
         let formatter = DateFormatter()
-        formatter.dateStyle = .short
+        formatter.dateStyle = .none
         formatter.timeStyle = .short
         return formatter
     }
@@ -695,12 +696,13 @@ struct PageWidgetEntryView : View {
                 .font(.caption)
                 .fontWeight(.bold)
                 .lineLimit(1)
+                .foregroundColor(colorScheme == .dark ? .white : .black)
             
             Text(entry.configuration.websiteURL)
                 .font(.caption2)
                 .lineLimit(1)
                 .truncationMode(.middle)
-                .foregroundColor(.secondary)
+                .foregroundColor(.gray)
             
             // Content from the website
             if let _ = entry.webContent.error {
@@ -724,7 +726,7 @@ struct PageWidgetEntryView : View {
                     if !errorGuidance.isEmpty {
                         Text(errorGuidance)
                             .font(.caption2)
-                            .foregroundColor(.secondary)
+                            .foregroundColor(.gray)
                             .lineLimit(1)
                             .padding(.top, 2)
                     }
@@ -736,6 +738,7 @@ struct PageWidgetEntryView : View {
                 } else {
                     Text(entry.webContent.content)
                         .font(family == .systemSmall ? .caption : .body)
+                        .foregroundColor(colorScheme == .dark ? .white : .black)
                         .lineLimit(getLineLimit())
                 }
             }
@@ -746,7 +749,7 @@ struct PageWidgetEntryView : View {
                 // Display when the content was last updated
                 Text("Updated: \(timeFormatter.string(from: entry.webContent.lastUpdated))")
                     .font(.caption2)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(.gray)
                 
                 Spacer()
                 
@@ -755,8 +758,9 @@ struct PageWidgetEntryView : View {
                     Text("Server")
                         .font(.caption2)
                         .padding(2)
-                        .background(Color.green.opacity(0.2))
+                        .background(Color.gray.opacity(0.2))
                         .cornerRadius(3)
+                        .foregroundColor(colorScheme == .dark ? .white : .black)
                 }
                 
                 // JavaScript indicator
@@ -764,8 +768,9 @@ struct PageWidgetEntryView : View {
                     Text("JS")
                         .font(.caption2)
                         .padding(2)
-                        .background(Color.blue.opacity(0.2))
+                        .background(Color.gray.opacity(0.2))
                         .cornerRadius(3)
+                        .foregroundColor(colorScheme == .dark ? .white : .black)
                 }
                 
                 // Wait options indicator
@@ -773,8 +778,9 @@ struct PageWidgetEntryView : View {
                     Text("Wait")
                         .font(.caption2)
                         .padding(2)
-                        .background(Color.purple.opacity(0.2))
+                        .background(Color.gray.opacity(0.2))
                         .cornerRadius(3)
+                        .foregroundColor(colorScheme == .dark ? .white : .black)
                 }
             }
         }
@@ -849,18 +855,19 @@ struct PageWidgetEntryView : View {
             if results.isEmpty {
                 Text("No results found")
                     .font(.caption)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(.gray)
             } else {
                 // For small widgets, just show the count and first item
                 if family == .systemSmall {
                     Text("\(results.count) items found")
                         .font(.caption)
-                        .foregroundColor(.secondary)
+                        .foregroundColor(.gray)
                         .padding(.bottom, 2)
                     
                     if let first = results.first {
                         Text(first)
                             .font(.caption)
+                            .foregroundColor(colorScheme == .dark ? .white : .black)
                             .lineLimit(2)
                     }
                 } else {
@@ -871,10 +878,12 @@ struct PageWidgetEntryView : View {
                                 VStack(alignment: .leading, spacing: 2) {
                                     Text(results[index])
                                         .font(family == .systemMedium ? .caption : .body)
+                                        .foregroundColor(colorScheme == .dark ? .white : .black)
                                         .lineLimit(family == .systemMedium ? 2 : 4)
                                     
                                     if index < results.count - 1 {
                                         Divider()
+                                            .background(Color.gray.opacity(0.3))
                                             .padding(.vertical, 2)
                                     }
                                 }
@@ -923,7 +932,10 @@ struct PageWidget: Widget {
     var body: some WidgetConfiguration {
         AppIntentConfiguration(kind: kind, intent: ConfigurationAppIntent.self, provider: Provider()) { entry in
             PageWidgetEntryView(entry: entry)
-                .containerBackground(.fill.tertiary, for: .widget)
+                .containerBackground(for: .widget) {
+                    // Use the standard widget background
+                    Color.clear
+                }
         }
         .configurationDisplayName("Web Content Widget")
         .description("Display content from any website using CSS selectors. Supports JavaScript rendering for dynamic websites.")
